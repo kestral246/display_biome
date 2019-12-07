@@ -4,9 +4,16 @@ Mod to place a HUD on screen with local temperature, humidity, and biome name.
 
 ![Screenshot 1](screenshot.png "Display Biome Screenshot")
 
+**Updates:**
+
+- Now defaults to not showing biome information.
+- Use chat command /biomes to enable.
+- Further invocations of /biomes will toggle biome information off and on.
+- Enable state is stored using mod storage.
+
 Performs simple ground search to try to be more accurate when flying with multi-elevation biomes.
 
-No dependencies and no options.
+No dependencies.
 
 
 **License of source code:  LGPL-2.1**
