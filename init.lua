@@ -2,7 +2,7 @@
 -- Adds HUD display of current mapgen biome information.
 --
 -- by David G (kestral246@gmail.com)
--- 2020-01-01
+-- 2020-01-02
 --
 -- Add chat command /biomes
 -- Add support for v6 using Wuzzy's biomeinfo mod
@@ -11,7 +11,8 @@ display_biome = {}
 local storage = minetest.get_mod_storage()
 
 -- Optional V6 Support
-local is_v6 = minetest.get_mapgen_setting("mg_name") == "v6" and minetest.get_modpath("biomeinfo") ~= nil
+local have_biomeinfo = minetest.get_modpath("biomeinfo") ~= nil
+local is_v6 = minetest.get_mapgen_setting("mg_name") == "v6"
 
 -- Configuration option
 local start_enabled = minetest.settings:get_bool("display_biome_enabled", false)
@@ -53,6 +54,7 @@ minetest.register_chatcommand("biomes", {
 			storage:set_string(name, "0")
 		else
 			player:hud_change(display_biome[name].id, "text", "-")
+			display_biome[name].last_ippos = {x=0,y=0,z=0}  -- reset position
 			display_biome[name].enable = true
 			storage:set_string(name, "1")
 		end
@@ -89,18 +91,27 @@ minetest.register_globalstep(function(dtime)
 
 				local heat, humidity, name
 				if is_v6 then
-					heat = math.floor(biomeinfo.get_v6_heat(bpos) * 100 + 0.5)/100
-					humidity = math.floor(biomeinfo.get_v6_humidity(bpos) * 100 + 0.5)/100
-					name = biomeinfo.get_v6_biome(bpos)
+					if have_biomeinfo then  -- v6 support available
+						heat = math.floor(biomeinfo.get_v6_heat(bpos) * 100 + 0.5)/100
+						humidity = math.floor(biomeinfo.get_v6_humidity(bpos) * 100 + 0.5)/100
+						name = biomeinfo.get_v6_biome(bpos)
+					else  -- v6 support missing
+						heat = "?"
+						humidity = "?"
+						name = "Warning: to support v6 mapgens, also need biomeinfo mod enabled."
+					end
 				else
 					local bdata = minetest.get_biome_data(bpos)
 					heat = math.floor(bdata.heat + 0.5)
 					humidity = math.floor(bdata.humidity + 0.5)
 					name = minetest.get_biome_name(bdata.biome)
 				end
-				player:hud_change(display_biome[pname].id, "text",
+				local rc = player:hud_change(display_biome[pname].id, "text",
 					'temp = '..heat..', humid = '..humidity..', '..name)
-				display_biome[pname].last_ippos = vector.new(ippos)  -- update last player position
+				-- Check return code, seems to fix occasional startup glitch.
+				if rc == 1 then
+					display_biome[pname].last_ippos = vector.new(ippos)  -- update last player position
+				end
 			end
 		end
 	end
