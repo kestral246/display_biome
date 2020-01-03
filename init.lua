@@ -2,7 +2,7 @@
 -- Adds HUD display of current mapgen biome information.
 --
 -- by David G (kestral246@gmail.com)
--- 2020-01-02
+-- 2020-01-03
 --
 -- Add chat command /biomes
 -- Add support for v6 using Wuzzy's biomeinfo mod
@@ -13,6 +13,9 @@ local storage = minetest.get_mod_storage()
 -- Optional V6 Support
 local have_biomeinfo = minetest.get_modpath("biomeinfo") ~= nil
 local is_v6 = minetest.get_mapgen_setting("mg_name") == "v6"
+if is_v6 and not have_biomeinfo then
+	minetest.log("warning", "The display_biome mod also needs biomeinfo to support v6 mapgens.")
+end
 
 -- Configuration option
 local start_enabled = minetest.settings:get_bool("display_biome_enabled", false)
@@ -98,7 +101,7 @@ minetest.register_globalstep(function(dtime)
 					else  -- v6 support missing
 						heat = "?"
 						humidity = "?"
-						name = "Warning: to support v6 mapgens, also need biomeinfo mod enabled."
+						name = "unknown"
 					end
 				else
 					local bdata = minetest.get_biome_data(bpos)
